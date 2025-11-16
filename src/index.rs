@@ -7,6 +7,7 @@ use std::fs::{File, OpenOptions, create_dir_all};
 use std::hash::{Hash, Hasher};
 use std::io::{BufReader, Write};
 use std::path::Path;
+use anyhow::anyhow;
 
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq)]
 pub struct Index {
@@ -35,8 +36,7 @@ impl Index {
 
     pub fn generate_index(path: &Path) -> anyhow::Result<Index> {
         if !path.is_dir() {
-            eprintln!("'{}' is no directory", path.display());
-            std::process::exit(1);
+            return Err(anyhow!(format!("The path is not a directory: {}", path.to_str().unwrap())));
         }
         let all_files = get_all_test_files(path);
         let mut index_map: BTreeMap<String, Vec<String>> = BTreeMap::new();
@@ -44,8 +44,7 @@ impl Index {
         for i in all_files {
             let file = File::open(i.clone())?;
             let reader = BufReader::new(file);
-            let test: TestSpec =
-                serde_json::from_reader(reader).expect("broken test file, isn't json!");
+            let test: TestSpec = serde_json::from_reader(reader)?;
             for tag in &test.tags {
                 if let Some(vec) = index_map.get_mut(tag) {
                     vec.push(i.clone())
@@ -53,16 +52,15 @@ impl Index {
                     index_map.insert(tag.clone(), vec![i.clone()]);
                 }
             }
+            for tag in &test.tags {
+                index_map.entry(tag.clone()).or_default().push(i.clone());
+            }
             if test.tags.is_empty() {
-                if let Some(vec) = index_map.get_mut(Index::DEFAULT_TAG) {
-                    vec.push(i.clone())
-                } else {
-                    index_map.insert(Index::DEFAULT_TAG.into(), vec![i.clone()]);
-                }
+                index_map.entry(Index::DEFAULT_TAG.to_string()).or_default().push(i.clone());
             }
         }
         let index = Index::new(hash, &index_map);
-        let index_string = to_string_pretty(&index).expect("The index is broken");
+        let index_string = to_string_pretty(&index)?;
         let path = Path::new(Index::INDEX_NAME);
 
         // create parent directories if they don’t exist
@@ -93,10 +91,10 @@ impl Index {
             match serde_json::from_reader(reader) {
                 Ok(dex) => {
                     index = dex;
-                    if let Ok(vec) = Index::get_all_tests_paths() {
-                        if index.validate(get_hash(&vec)) {
-                            valid_index = true;
-                        }
+                    if let Ok(vec) = Index::get_all_tests_paths()
+                        && index.validate(get_hash(&vec))
+                    {
+                        valid_index = true;
                     }
                 }
                 Err(e) => {
@@ -105,12 +103,12 @@ impl Index {
             }
         }
         if !valid_index {
-            println!("Index does not exists or isn't valid, so need to build the index first");
-            index = Index::generate_index(&Path::new(Index::TEST_PATH))?;
+            // Index does not exists or isn't valid, so need to build the index first
+            index = Index::generate_index(Path::new(Index::TEST_PATH))?;
         }
         let mut test_paths = vec![];
         for (k, v) in &index.index {
-            if scope.contains(&k) {
+            if scope.contains(k) {
                 for path in v {
                     println!("added test to current run: '{}' ", path);
                     test_paths.push(path.clone());
@@ -135,10 +133,10 @@ fn get_all_test_files(start_dir: &Path) -> Vec<String> {
                 let path = entry.path();
                 if path.is_dir() {
                     dirs.push(path);
-                } else if let Some(ext) = path.extension() {
-                    if ext == "json" {
-                        index.push(path.to_str().unwrap().to_string());
-                    }
+                } else if let Some(ext) = path.extension()
+                    && ext == "json"
+                {
+                    index.push(path.to_string_lossy().parse().unwrap());
                 }
             }
         }
