@@ -67,17 +67,8 @@ impl TestLoader {
     /// * `INDEX_NAME` - Path to the index cache file (default: ".cache/index.json")
     /// * `DEFAULT_TAG` - Tag assigned to tests with no tags (default: "default")
     pub fn collect_by_tags(tags: &[String]) -> Result<Vec<PathBuf>> {
-        let paths = Index::load_tagged_tests_paths(tags)?;
-        Ok(paths.into_iter().map(PathBuf::from).collect())
-    }
-
-    /// Collect all tests using the index system
-    ///
-    /// This is more efficient than collect_all_test_files when the index is already built,
-    /// as it uses cached file discovery.
-    pub fn collect_all_indexed() -> Result<Vec<PathBuf>> {
-        let paths = Index::get_all_tests_paths()?;
-        Ok(paths.into_iter().map(PathBuf::from).collect())
+        let paths = Index::get_test_paths_from_scopes(tags)?;
+        Ok(paths)
     }
 
     /// Check if a file is a JSON file by extension
