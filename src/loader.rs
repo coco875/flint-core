@@ -1,6 +1,6 @@
+use crate::index::Index;
 use anyhow::Result;
 use std::path::{Path, PathBuf};
-use crate::index::Index;
 
 /// Test file loader for discovering test files in the filesystem
 pub struct TestLoader;
@@ -226,9 +226,30 @@ mod tests {
 
         assert_eq!(files.len(), 3);
         // Verify they're sorted
-        assert!(files[0].file_name().unwrap().to_str().unwrap().starts_with("a_"));
-        assert!(files[1].file_name().unwrap().to_str().unwrap().starts_with("m_"));
-        assert!(files[2].file_name().unwrap().to_str().unwrap().starts_with("z_"));
+        assert!(
+            files[0]
+                .file_name()
+                .unwrap()
+                .to_str()
+                .unwrap()
+                .starts_with("a_")
+        );
+        assert!(
+            files[1]
+                .file_name()
+                .unwrap()
+                .to_str()
+                .unwrap()
+                .starts_with("m_")
+        );
+        assert!(
+            files[2]
+                .file_name()
+                .unwrap()
+                .to_str()
+                .unwrap()
+                .starts_with("z_")
+        );
     }
 
     #[test]
@@ -245,6 +266,13 @@ mod tests {
 
         // Should only find the JSON file
         assert_eq!(files.len(), 1);
-        assert!(files[0].file_name().unwrap().to_str().unwrap().ends_with(".json"));
+        assert!(
+            files[0]
+                .file_name()
+                .unwrap()
+                .to_str()
+                .unwrap()
+                .ends_with(".json")
+        );
     }
 }

@@ -36,11 +36,7 @@ impl AssertionResult {
     }
 
     /// Create a failed assertion result
-    pub fn failure(
-        tick: u32,
-        action_type: impl Into<String>,
-        error: impl Into<String>,
-    ) -> Self {
+    pub fn failure(tick: u32, action_type: impl Into<String>, error: impl Into<String>) -> Self {
         Self {
             tick,
             success: false,
@@ -236,8 +232,8 @@ mod tests {
 
     #[test]
     fn test_assertion_result_failure() {
-        let result = AssertionResult::failure(10, "AssertState", "Block mismatch")
-            .with_position([5, 6, 7]);
+        let result =
+            AssertionResult::failure(10, "AssertState", "Block mismatch").with_position([5, 6, 7]);
 
         assert!(!result.success);
         assert_eq!(result.tick, 10);
@@ -268,7 +264,11 @@ mod tests {
         let mut result = TestResult::new("test2");
 
         result.add_assertion(AssertionResult::success(5, "Assert"));
-        result.add_assertion(AssertionResult::failure(10, "Assert", "Expected stone, got dirt"));
+        result.add_assertion(AssertionResult::failure(
+            10,
+            "Assert",
+            "Expected stone, got dirt",
+        ));
         result.add_assertion(AssertionResult::success(15, "AssertState"));
 
         assert!(!result.success);

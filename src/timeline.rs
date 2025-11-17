@@ -104,7 +104,11 @@ mod tests {
     use super::*;
     use crate::test_spec::{ActionType, TickSpec};
 
-    fn create_test_spec(name: &str, timeline: Vec<TimelineEntry>, breakpoints: Vec<u32>) -> TestSpec {
+    fn create_test_spec(
+        name: &str,
+        timeline: Vec<TimelineEntry>,
+        breakpoints: Vec<u32>,
+    ) -> TestSpec {
         TestSpec {
             flint_version: None,
             name: name.to_string(),

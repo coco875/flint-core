@@ -3,7 +3,7 @@
 /// This module provides utilities for calculating spatial positions for tests
 /// in a grid-based layout, useful for running multiple tests in parallel
 /// without spatial conflicts.
-
+///
 /// Calculate grid offset for a test at a given index
 ///
 /// Tests are arranged in a square grid centered at the origin (0, 0).
@@ -42,9 +42,9 @@ pub fn calculate_test_offset(test_index: usize, total_tests: usize, cell_size: i
     // For even grid sizes, skew to positive: offset = -(grid_size / 2 - 1) * cell_size
     // This way: 1x1 → (0,0), 2x2 → (0,0),(1,0),(0,1),(1,1), 3x3 → (-1,-1)...(1,1)
     let base_offset = if grid_size % 2 == 1 {
-        -(grid_size / 2) * cell_size  // Odd: truly centered
+        -(grid_size / 2) * cell_size // Odd: truly centered
     } else {
-        -(grid_size / 2 - 1) * cell_size  // Even: skew to positive
+        -(grid_size / 2 - 1) * cell_size // Even: skew to positive
     };
 
     // Calculate world offset for this test
@@ -122,7 +122,10 @@ pub fn apply_offset(pos: [i32; 3], offset: [i32; 3]) -> [i32; 3] {
 ///
 /// New region with offset applied to both corners
 pub fn apply_offset_to_region(region: [[i32; 3]; 2], offset: [i32; 3]) -> [[i32; 3]; 2] {
-    [apply_offset(region[0], offset), apply_offset(region[1], offset)]
+    [
+        apply_offset(region[0], offset),
+        apply_offset(region[1], offset),
+    ]
 }
 
 #[cfg(test)]
@@ -148,10 +151,10 @@ mod tests {
         let offset3 = calculate_test_offset(3, 4, cell_size);
 
         // For 4 tests (2x2 grid, even), should be in chunks (0,0), (1,0), (0,1), (1,1)
-        assert_eq!(offset0, [0, 0, 0]);     // chunk (0, 0)
-        assert_eq!(offset1, [16, 0, 0]);    // chunk (1, 0)
-        assert_eq!(offset2, [0, 0, 16]);    // chunk (0, 1)
-        assert_eq!(offset3, [16, 0, 16]);   // chunk (1, 1)
+        assert_eq!(offset0, [0, 0, 0]); // chunk (0, 0)
+        assert_eq!(offset1, [16, 0, 0]); // chunk (1, 0)
+        assert_eq!(offset2, [0, 0, 16]); // chunk (0, 1)
+        assert_eq!(offset3, [16, 0, 16]); // chunk (1, 1)
 
         // All tests should have Y=0
         assert_eq!(offset0[1], 0);
@@ -166,9 +169,7 @@ mod tests {
 
     #[test]
     fn test_nine_tests_in_grid() {
-        let offsets: Vec<_> = (0..9)
-            .map(|i| calculate_test_offset(i, 9, 16))
-            .collect();
+        let offsets: Vec<_> = (0..9).map(|i| calculate_test_offset(i, 9, 16)).collect();
 
         // Should create a 3x3 grid (odd size, centered)
         assert_eq!(offsets.len(), 9);
@@ -182,7 +183,7 @@ mod tests {
 
         // Corner tests should be at expected positions
         assert_eq!(offsets[0], [-16, 0, -16]); // chunk (-1, -1)
-        assert_eq!(offsets[8], [16, 0, 16]);   // chunk (1, 1)
+        assert_eq!(offsets[8], [16, 0, 16]); // chunk (1, 1)
     }
 
     #[test]
