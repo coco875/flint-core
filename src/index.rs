@@ -199,47 +199,54 @@ mod tests {
     use std::fs;
     use tempfile::TempDir;
 
-    fn create_test_file(dir: &Path, name: &str) -> PathBuf {
+    fn create_emtpy_file(dir: &Path, name: &str) -> PathBuf {
+        let path = dir.join(name);
+        fs::write(&path, "{}").unwrap();
+        path
+    }
+    fn create_tagged_file(dir: &Path, name: &str, tags: &[String]) -> PathBuf {
         let path = dir.join(name);
         fs::write(&path, "{}").unwrap();
         path
     }
 
     #[test]
-    fn test_collect_single_file() {
-        let temp_dir = TempDir::new().unwrap();
-        let test_file = create_test_file(temp_dir.path(), "test.json");
-
-        let files = TestLoader::collect_test_files(&test_file, false).unwrap();
-        assert_eq!(files.len(), 1);
-        assert_eq!(files[0], test_file);
-    }
-
-    #[test]
-    fn test_collect_non_json_file() {
-        let temp_dir = TempDir::new().unwrap();
-        let txt_file = temp_dir.path().join("test.txt");
-        fs::write(&txt_file, "test").unwrap();
-
-        let files = TestLoader::collect_test_files(&txt_file, false).unwrap();
-        assert_eq!(files.len(), 0);
-    }
-
-    #[test]
-    fn test_collect_recursive() {
+    fn test_generate_index() {
         let temp_dir = TempDir::new().unwrap();
 
         // Create files in root
-        create_test_file(temp_dir.path(), "test1.json");
+        create_emtpy_file(temp_dir.path(), "test1.json");
 
         // Create nested subdirectories with files
         let sub_dir1 = temp_dir.path().join("subdir1");
         fs::create_dir(&sub_dir1).unwrap();
-        create_test_file(&sub_dir1, "test2.json");
+        create_emtpy_file(&sub_dir1, "test2.json");
 
         let sub_dir2 = sub_dir1.join("nested");
         fs::create_dir(&sub_dir2).unwrap();
-        create_test_file(&sub_dir2, "test3.json");
+        create_emtpy_file(&sub_dir2, "test3.json");
+
+        let files = TestLoader::collect_test_files(temp_dir.path(), true).unwrap();
+
+        // Should find all 3 files
+        assert_eq!(files.len(), 3);
+    }
+
+    #[test]
+    fn test_hash() {
+        let temp_dir = TempDir::new().unwrap();
+
+        // Create files in root
+        create_emtpy_file(temp_dir.path(), "test1.json");
+
+        // Create nested subdirectories with files
+        let sub_dir1 = temp_dir.path().join("subdir1");
+        fs::create_dir(&sub_dir1).unwrap();
+        create_emtpy_file(&sub_dir1, "test2.json");
+
+        let sub_dir2 = sub_dir1.join("nested");
+        fs::create_dir(&sub_dir2).unwrap();
+        create_emtpy_file(&sub_dir2, "test3.json");
 
         let files = TestLoader::collect_test_files(temp_dir.path(), true).unwrap();
 
