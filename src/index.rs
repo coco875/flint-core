@@ -225,7 +225,6 @@ mod tests {
         assert_eq!(files.len(), 0);
     }
 
-
     #[test]
     fn test_collect_recursive() {
         let temp_dir = TempDir::new().unwrap();
