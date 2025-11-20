@@ -130,9 +130,12 @@ impl Index {
     /// * `DEFAULT_TAG` - Tag assigned to tests with no tags (default: "default")
     pub fn get_test_paths_from_scopes(&self, scope: &[String]) -> anyhow::Result<Vec<PathBuf>> {
         let mut test_paths = vec![];
-        for (k, v) in &self.index {
-            if scope.contains(k) {
-                for path in v {
+        for tag in scope {
+            if !self.index.contains_key(tag) {
+                return Err(anyhow::anyhow!("Tag '{}' not found in index", tag));
+            } else {
+                let paths = self.index.get(tag).unwrap();
+                for path in paths {
                     // would load the same test more than once if the test will be in more scopes
                     if !test_paths.contains(&PathBuf::from(path)) {
                         test_paths.push(PathBuf::from(path));
