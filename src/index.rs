@@ -7,15 +7,13 @@ use std::hash::{Hash, Hasher};
 use std::io::{BufReader, Write};
 use std::path::{Path, PathBuf};
 
-use crate::utils::{get_default_tag, get_index_name, get_test_path};
+use crate::utils::{get_default_tag, get_index_name};
 
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq)]
 pub struct Index {
     pub hash: u64,
     pub index: BTreeMap<String, Vec<String>>,
     index_name: String,
-    default_tag: String,
-    test_path: String,
 }
 
 impl Index {
@@ -70,8 +68,6 @@ impl Index {
             hash: 0,
             index: BTreeMap::new(),
             index_name: get_index_name(),
-            default_tag: get_default_tag(),
-            test_path: get_test_path(),
         }
     }
 
