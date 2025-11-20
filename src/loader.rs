@@ -302,7 +302,7 @@ mod tests {
 
         let loader = TestLoader::new(temp_dir.path(), true).unwrap();
 
-        let files = loader.collect_by_tags(&vec!["unit".to_string()]).unwrap();
+        let files = loader.collect_by_tags(&["unit".to_string()]).unwrap();
 
         // Should find all 3 files
         assert_eq!(files.len(), 3);
