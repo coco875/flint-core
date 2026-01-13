@@ -124,7 +124,9 @@ impl Index {
         for i in all_files {
             let file = File::open(i.clone())?;
             let reader = BufReader::new(file);
-            let test: TestSpec = serde_json::from_reader(reader)?;
+            let test: TestSpec = serde_json::from_reader(reader).map_err(|e| {
+                anyhow::anyhow!("{}:{}:{}: {}", i.display(), e.line(), e.column(), e)
+            })?;
             // Add test to all tags
             for tag in &test.tags {
                 self.index
