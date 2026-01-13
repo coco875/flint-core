@@ -91,28 +91,11 @@ impl Block {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "do", rename_all = "snake_case")]
 pub enum ActionType {
-    Place {
-        pos: [i32; 3],
-        block: Block,
-    },
-    PlaceEach {
-        blocks: Vec<BlockPlacement>,
-    },
-    Fill {
-        region: [[i32; 3]; 2],
-        with: Block,
-    },
-    Remove {
-        pos: [i32; 3],
-    },
-    Assert {
-        checks: Vec<BlockCheck>,
-    },
-    AssertState {
-        pos: [i32; 3],
-        state: String,
-        values: Vec<String>,
-    },
+    Place { pos: [i32; 3], block: Block },
+    PlaceEach { blocks: Vec<BlockPlacement> },
+    Fill { region: [[i32; 3]; 2], with: Block },
+    Remove { pos: [i32; 3] },
+    Assert { checks: Vec<BlockCheck> },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -124,7 +107,7 @@ pub struct BlockPlacement {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BlockCheck {
     pub pos: [i32; 3],
-    pub is: String,
+    pub is: Block,
 }
 
 impl TestSpec {
@@ -135,7 +118,9 @@ impl TestSpec {
 
     pub fn from_file(path: &PathBuf) -> anyhow::Result<Self> {
         let content = std::fs::read_to_string(path)?;
-        let spec: TestSpec = serde_json::from_str(&content)?;
+        let spec: TestSpec = serde_json::from_str(&content).map_err(|e| {
+            anyhow::anyhow!("{}:{}:{}: {}", path.display(), e.line(), e.column(), e)
+        })?;
         spec.validate()?;
         Ok(spec)
     }
@@ -235,9 +220,6 @@ impl TestSpec {
                     for check in checks {
                         self.validate_position(check.pos, &region)?;
                     }
-                }
-                ActionType::AssertState { pos, .. } => {
-                    self.validate_position(*pos, &region)?;
                 }
             }
         }

@@ -5,7 +5,7 @@ use std::collections::{HashMap, HashSet};
 #[derive(Debug)]
 pub struct TimelineAggregate<'a> {
     /// Merged timeline: tick -> Vec<(test_idx, timeline_entry, value_idx)>
-    /// The value_idx is used for actions with multiple ticks (e.g., AssertState with multiple values)
+    /// The value_idx is used for actions with multiple ticks (e.g., Assert with multiple checks)
     pub timeline: HashMap<u32, Vec<(usize, &'a TimelineEntry, usize)>>,
 
     /// Maximum tick across all tests
@@ -43,7 +43,7 @@ impl<'a> TimelineAggregate<'a> {
             }
 
             // Expand timeline entries with multiple ticks
-            // For example, an AssertState action at ticks [0, 5, 10] will create 3 entries
+            // For example, an Assert action at ticks [0, 5, 10] will create 3 entries
             for entry in &test.timeline {
                 let ticks = entry.at.to_vec();
                 for (value_idx, tick) in ticks.iter().enumerate() {
@@ -102,7 +102,7 @@ impl<'a> TimelineAggregate<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_spec::{ActionType, Block, TickSpec};
+    use crate::test_spec::{ActionType, Block, BlockCheck, TickSpec};
 
     fn create_test_spec(
         name: &str,
@@ -194,10 +194,14 @@ mod tests {
     fn test_multiple_ticks_expansion() {
         let entry = TimelineEntry {
             at: TickSpec::Multiple(vec![0, 5, 10]),
-            action_type: ActionType::AssertState {
-                pos: [0, 0, 0],
-                state: "power".to_string(),
-                values: vec!["0".to_string(), "5".to_string(), "15".to_string()],
+            action_type: ActionType::Assert {
+                checks: vec![BlockCheck {
+                    pos: [0, 0, 0],
+                    is: Block {
+                        id: "minecraft:redstone_wire".to_string(),
+                        properties: Default::default(),
+                    },
+                }],
             },
         };
 
