@@ -67,7 +67,7 @@ impl Block {
             self.id.clone()
         } else {
             let mut props: Vec<String> = Vec::new();
-            
+
             for (key, value) in &self.properties {
                 if key == "properties" {
                     if let serde_json::Value::Object(nested) = value {
@@ -493,7 +493,7 @@ mod tests {
 
         let block: Block = serde_json::from_str(json).unwrap();
         let result = block.to_command();
-        
+
         // Order may vary due to HashMap
         assert!(result.contains("minecraft:lever["));
         assert!(result.contains("powered=true"));
@@ -512,7 +512,7 @@ mod tests {
 
         let block: Block = serde_json::from_str(json).unwrap();
         let result = block.to_command();
-        
+
         assert!(result.contains("minecraft:redstone_wire["));
         assert!(result.contains("power=15"));
         assert!(result.contains("north=side"));
@@ -528,7 +528,7 @@ mod tests {
 
         let block: Block = serde_json::from_str(json).unwrap();
         let result = block.to_command();
-        
+
         assert_eq!(result, "minecraft:stone");
     }
 
@@ -539,17 +539,21 @@ mod tests {
             id: "minecraft:test".to_string(),
             properties: HashMap::new(),
         };
-        
+
         // Add a flat property
-        block.properties.insert("flat_prop".to_string(), Value::from("value1"));
-        
+        block
+            .properties
+            .insert("flat_prop".to_string(), Value::from("value1"));
+
         // Add nested properties
         let mut nested = serde_json::Map::new();
         nested.insert("nested_prop".to_string(), Value::from("value2"));
-        block.properties.insert("properties".to_string(), Value::Object(nested));
-        
+        block
+            .properties
+            .insert("properties".to_string(), Value::Object(nested));
+
         let result = block.to_command();
-        
+
         assert!(result.contains("minecraft:test["));
         assert!(result.contains("flat_prop=value1"));
         assert!(result.contains("nested_prop=value2"));
@@ -567,7 +571,7 @@ mod tests {
 
         let block: Block = serde_json::from_str(json).unwrap();
         let result = block.to_command();
-        
+
         assert!(result.contains("extended=true"));
         assert!(result.contains("facing=up"));
     }
