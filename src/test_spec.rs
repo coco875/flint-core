@@ -91,23 +91,11 @@ impl Block {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "do", rename_all = "snake_case")]
 pub enum ActionType {
-    Place {
-        pos: [i32; 3],
-        block: Block,
-    },
-    PlaceEach {
-        blocks: Vec<BlockPlacement>,
-    },
-    Fill {
-        region: [[i32; 3]; 2],
-        with: Block,
-    },
-    Remove {
-        pos: [i32; 3],
-    },
-    Assert {
-        checks: Vec<BlockCheck>,
-    },
+    Place { pos: [i32; 3], block: Block },
+    PlaceEach { blocks: Vec<BlockPlacement> },
+    Fill { region: [[i32; 3]; 2], with: Block },
+    Remove { pos: [i32; 3] },
+    Assert { checks: Vec<BlockCheck> },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
