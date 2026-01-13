@@ -479,4 +479,96 @@ mod tests {
         assert!(block.properties.get("float").unwrap().is_number());
         assert!(block.properties.get("negative").unwrap().is_number());
     }
+
+    #[test]
+    fn test_nested_properties_object() {
+        // Test the new format where properties are nested inside a "properties" key
+        let json = r#"{
+            "id": "minecraft:lever",
+            "properties": {
+                "powered": "true",
+                "face": "floor"
+            }
+        }"#;
+
+        let block: Block = serde_json::from_str(json).unwrap();
+        let result = block.to_command();
+        
+        // Order may vary due to HashMap
+        assert!(result.contains("minecraft:lever["));
+        assert!(result.contains("powered=true"));
+        assert!(result.contains("face=floor"));
+    }
+
+    #[test]
+    fn test_nested_properties_with_numbers() {
+        let json = r#"{
+            "id": "minecraft:redstone_wire",
+            "properties": {
+                "power": 15,
+                "north": "side"
+            }
+        }"#;
+
+        let block: Block = serde_json::from_str(json).unwrap();
+        let result = block.to_command();
+        
+        assert!(result.contains("minecraft:redstone_wire["));
+        assert!(result.contains("power=15"));
+        assert!(result.contains("north=side"));
+    }
+
+    #[test]
+    fn test_empty_nested_properties() {
+        // When properties object is empty, should return just the id
+        let json = r#"{
+            "id": "minecraft:stone",
+            "properties": {}
+        }"#;
+
+        let block: Block = serde_json::from_str(json).unwrap();
+        let result = block.to_command();
+        
+        assert_eq!(result, "minecraft:stone");
+    }
+
+    #[test]
+    fn test_mixed_flat_and_nested_properties() {
+        // Test when there's both flat properties and nested ones
+        let mut block = Block {
+            id: "minecraft:test".to_string(),
+            properties: HashMap::new(),
+        };
+        
+        // Add a flat property
+        block.properties.insert("flat_prop".to_string(), Value::from("value1"));
+        
+        // Add nested properties
+        let mut nested = serde_json::Map::new();
+        nested.insert("nested_prop".to_string(), Value::from("value2"));
+        block.properties.insert("properties".to_string(), Value::Object(nested));
+        
+        let result = block.to_command();
+        
+        assert!(result.contains("minecraft:test["));
+        assert!(result.contains("flat_prop=value1"));
+        assert!(result.contains("nested_prop=value2"));
+    }
+
+    #[test]
+    fn test_nested_properties_bool_values() {
+        let json = r#"{
+            "id": "minecraft:piston",
+            "properties": {
+                "extended": true,
+                "facing": "up"
+            }
+        }"#;
+
+        let block: Block = serde_json::from_str(json).unwrap();
+        let result = block.to_command();
+        
+        assert!(result.contains("extended=true"));
+        assert!(result.contains("facing=up"));
+    }
 }
