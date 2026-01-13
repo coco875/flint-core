@@ -64,26 +64,39 @@ pub struct Block {
 impl Block {
     pub fn to_command(&self) -> String {
         if self.properties.is_empty() {
-            // Nur ID wenn keine Properties
             self.id.clone()
         } else {
-            // ID mit Properties
-            let props: Vec<String> = self
-                .properties
-                .iter()
-                .map(|(key, value)| {
-                    // Value ohne Quotes formatieren
+            let mut props: Vec<String> = Vec::new();
+            
+            for (key, value) in &self.properties {
+                if key == "properties" {
+                    if let serde_json::Value::Object(nested) = value {
+                        for (nested_key, nested_value) in nested {
+                            let val = match nested_value {
+                                serde_json::Value::String(s) => s.clone(),
+                                serde_json::Value::Bool(b) => b.to_string(),
+                                serde_json::Value::Number(n) => n.to_string(),
+                                _ => nested_value.to_string(),
+                            };
+                            props.push(format!("{}={}", nested_key, val));
+                        }
+                    }
+                } else {
                     let val = match value {
                         serde_json::Value::String(s) => s.clone(),
                         serde_json::Value::Bool(b) => b.to_string(),
                         serde_json::Value::Number(n) => n.to_string(),
                         _ => value.to_string(),
                     };
-                    format!("{}={}", key, val)
-                })
-                .collect();
+                    props.push(format!("{}={}", key, val));
+                }
+            }
 
-            format!("{}[{}]", self.id, props.join(","))
+            if props.is_empty() {
+                self.id.clone()
+            } else {
+                format!("{}[{}]", self.id, props.join(","))
+            }
         }
     }
 }
