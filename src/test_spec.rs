@@ -108,11 +108,6 @@ pub enum ActionType {
     Assert {
         checks: Vec<BlockCheck>,
     },
-    AssertState {
-        pos: [i32; 3],
-        state: String,
-        values: Vec<String>,
-    },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -124,7 +119,7 @@ pub struct BlockPlacement {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BlockCheck {
     pub pos: [i32; 3],
-    pub is: String,
+    pub is: Block,
 }
 
 impl TestSpec {
@@ -237,9 +232,6 @@ impl TestSpec {
                     for check in checks {
                         self.validate_position(check.pos, &region)?;
                     }
-                }
-                ActionType::AssertState { pos, .. } => {
-                    self.validate_position(*pos, &region)?;
                 }
             }
         }
