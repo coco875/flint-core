@@ -26,6 +26,14 @@ impl InfoType {
         }
     }
 }
+impl Into<String> for InfoType {
+    fn into(self) -> String {
+        match self {
+            InfoType::String(s) => s.clone(),
+            InfoType::Block(b) => b.to_command(),
+        }
+    }
+}
 
 /// Result of executing a single assertion or action
 #[derive(Debug, Clone, Serialize, Deserialize)]
