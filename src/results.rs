@@ -34,6 +34,14 @@ impl From<InfoType> for String {
         }
     }
 }
+impl From<&InfoType> for String {
+    fn from(val: &InfoType) -> String {
+        match val {
+            InfoType::String(s) => s.clone(),
+            InfoType::Block(b) => b.to_command(),
+        }
+    }
+}
 
 /// Result of executing a single assertion or action
 #[derive(Debug, Clone, Serialize, Deserialize)]
