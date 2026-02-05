@@ -56,6 +56,7 @@ impl<'a, A: FlintAdapter> TestRunner<'a, A> {
         let timeline = TimelineAggregate::from_tests(&tests_with_offsets);
 
         let mut result = TestResult::new(&spec.name);
+        result.minecraft_ids = spec.minecraft_ids.clone();
 
         // Player is created on demand when player actions are used
         let mut player: Option<Box<dyn FlintPlayer>> = None;

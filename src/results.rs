@@ -112,6 +112,9 @@ pub struct TestResult {
     /// Name of the test
     pub test_name: String,
 
+    // Minecraft block_id, item_id or other ids of the targets in this test
+    pub minecraft_ids: Vec<String>,
+
     /// Overall success status (true if all assertions passed)
     pub success: bool,
 
@@ -142,6 +145,7 @@ impl TestResult {
             execution_time_ms: 0,
             failure_reason: None,
             test_offset: None,
+            minecraft_ids: Vec::new(),
         }
     }
 
@@ -288,6 +292,9 @@ impl TestSummary {
     /// Print results as JSON
     pub fn print_json(&self) {
         format::print_json(&self.results, self.elapsed());
+    }
+    pub fn print_ci(&self) {
+        format::print_ci(&self.results);
     }
 }
 

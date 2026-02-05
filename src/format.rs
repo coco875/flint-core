@@ -252,6 +252,21 @@ pub fn print_concise_summary(results: &[TestResult], elapsed: Duration) {
     println!();
 }
 
+pub fn print_ci(results: &[TestResult]) {
+    let test_objects: Vec<serde_json::Value> = results
+        .iter()
+        .filter(|r| !r.minecraft_ids.is_empty())
+        .map(|r| {
+            serde_json::json!({
+                "name": r.test_name,
+                "ids": r.minecraft_ids,
+                "success": r.success,
+            })
+        })
+        .collect();
+    println!("{}", serde_json::to_string_pretty(&test_objects).unwrap());
+}
+
 /// Format a number with comma separators (e.g., 1247 -> "1,247")
 pub fn format_number(n: usize) -> String {
     let s = n.to_string();

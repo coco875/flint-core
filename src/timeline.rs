@@ -118,6 +118,7 @@ mod tests {
             setup: None,
             timeline,
             breakpoints,
+            minecraft_ids: Vec::new(),
         }
     }
 
