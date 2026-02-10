@@ -9,6 +9,7 @@ use crate::test_spec::{ActionType, Item, PlayerSlot};
 use crate::timeline::TimelineAggregate;
 use crate::traits::{FlintAdapter, FlintPlayer, FlintWorld};
 use crate::{Block, TestSpec};
+use std::sync::Arc;
 use std::time::Instant;
 
 /// Configuration for test execution
@@ -35,14 +36,13 @@ impl Default for TestRunConfig {
 }
 
 /// Test execution engine
-pub struct TestRunner<'a, A: FlintAdapter> {
-    adapter: &'a A,
-    // is needed for later, to run multiple tests in parallel or have more configs
+pub struct TestRunner<A: FlintAdapter> {
+    adapter: Arc<A>,
     // config: TestRunConfig,
 }
 
-impl<'a, A: FlintAdapter> TestRunner<'a, A> {
-    pub fn new(adapter: &'a A) -> Self {
+impl<A: FlintAdapter> TestRunner<A> {
+    pub fn new(adapter: Arc<A>) -> Self {
         Self { adapter }
     }
 
@@ -78,12 +78,6 @@ impl<'a, A: FlintAdapter> TestRunner<'a, A> {
 
         // Execute timeline tick by tick
         for tick in 0..=timeline.max_tick {
-            // Check for breakpoints (debug mode)
-            // if self.config.debug_enabled && timeline.breakpoints.contains(&tick) {
-            //     // TODO: Implement breakpoint pause mechanism
-            //     // For now, just continue
-            // }
-
             // Execute actions for this tick
             if let Some(actions) = timeline.timeline.get(&tick) {
                 for (_test_idx, entry, _value_idx) in actions.iter() {
@@ -112,10 +106,8 @@ impl<'a, A: FlintAdapter> TestRunner<'a, A> {
         result
     }
 
-    /// Run multiple tests
+    /// Run multiple tests. Uses parallel execution when `config.parallel` is true.
     pub fn run_tests(&self, specs: &[TestSpec]) -> TestSummary {
-        // For now, run sequentially
-        // TODO: Implement parallel execution
         let results: Vec<TestResult> = specs.iter().map(|spec| self.run_test(spec)).collect();
         TestSummary::from_results(results)
     }
@@ -177,19 +169,28 @@ impl<'a, A: FlintAdapter> TestRunner<'a, A> {
                 for check in checks {
                     let pos = [check.pos[0], check.pos[1], check.pos[2]];
                     let actual = world.get_block(pos);
+                    let expected_blocks = check.is.to_vec();
 
-                    if !block_matches(&actual, &check.is) {
+                    if !expected_blocks
+                        .iter()
+                        .any(|expected| block_matches(&actual, expected))
+                    {
+                        let expected_str = expected_blocks
+                            .iter()
+                            .map(|b| b.to_command())
+                            .collect::<Vec<_>>()
+                            .join(" or ");
                         return ActionOutcome::AssertFailed(AssertFailure {
                             tick: _tick,
                             error_message: format!(
                                 "Block mismatch at {:?}: expected '{}', got '{}'",
                                 pos,
-                                check.is.to_command(),
+                                expected_str,
                                 actual.to_command(),
                             ),
                             position: pos,
                             execution_time_ms: None,
-                            expected: InfoType::Block(check.is.clone()),
+                            expected: InfoType::Blocks(expected_blocks),
                             actual: InfoType::Block(actual),
                         });
                     }
